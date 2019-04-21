@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Creates a public S3 bucket and enables Static Website hosting. 
+  Link: https://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html
+  Link: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html 
+  ** Version: 04-19-2019
+  ** Author: gagarin.dev'
+
+Parameters:
+
+  pStaticWebsiteBucketName:
+    Type: String
+    Description: 'Provide a name for the S3 bucket (must be globally unique).'
+  pIndexDocFilename:
+    Type: String
+    Default: 'index.html'
+    Description: 'Provide a filename for the Index document of the website.'
+  pErrorDocFilename:
+    Type: String
+    Default: 'error.html'
+    Description: 'Provide a filename for the Error document of the website.'
+  pTagEnvironmentType:
+    Type: String
+    Default: 'PROD'
+    AllowedValues: 
+      - 'PROD'
+      - 'DEV'
+    Description: 'Development or Production environment.'
+  pTagProjectName:
+    Type: String
+    Default: 'NameOfTheProject'
+    Description: 'Development or Production environment.'
+
+Resources:
+
+  rStaticWebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref pStaticWebsiteBucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration: 
+        - ServerSideEncryptionByDefault: 
+            SSEAlgorithm: AES256
+      WebsiteConfiguration:
+        IndexDocument: !Ref pIndexDocFilename
+        ErrorDocument: !Ref pErrorDocFilename
+      Tags:  # tag examples
+      - { Key: Environment, Value: !Ref pTagEnvironmentType }
+      - { Key: Project, Value: !Ref pTagProjectName }
+
+  rStaticWebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref rStaticWebsiteBucket
+      PolicyDocument:
+        Statement: 
+          - 
+            Sid: 'PublicReadForGetBucketObjects'
+            Effect: Allow
+            Action: 
+              - 's3:GetObject'
+            Principal: '*'
+            Resource: !Sub "arn:aws:s3:::${rStaticWebsiteBucket}/*"
+
+Outputs:
+  oStaticWebsiteBucketEndpoint:
+    Value: !GetAtt rStaticWebsiteBucket.WebsiteURL

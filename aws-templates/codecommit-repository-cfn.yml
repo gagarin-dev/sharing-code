@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Creates a CodeCommit repository.
+  The repository needs to be initialized after creation, so at least one branch is created.
+  ** Version: 04-12-2019
+  ** Author: gagarin.dev'
+
+Parameters:
+
+  pCodeCommitRepositoryName:
+    Type: String
+    Description: 'Provide a name for the repository.'
+  pCodeCommitRepositoryDescription:
+    Type: String
+    Description: 'Provide a description for the repository.'
+
+Resources:
+
+  rCodeCommitRepository:  # AWS CodeCommit repository
+    Type: AWS::CodeCommit::Repository
+    Properties: 
+      RepositoryDescription: !Ref pCodeCommitRepositoryDescription
+      RepositoryName: !Ref pCodeCommitRepositoryName
+
+Outputs:
+  oCodeCommitRepoId:
+    Value: !Ref rCodeCommitRepository
+    Description: The repository ID, such as 12a345b6-bbb7-4bb6-90b0-8c9577a2d2b9.
+  oCodeCommitRepoArn:
+    Value: !GetAtt rCodeCommitRepository.Arn
+    Description: 'ARN of the repository, such as arn:aws:codecommit:us-east-1:123456789012:MyDemoRepo.'

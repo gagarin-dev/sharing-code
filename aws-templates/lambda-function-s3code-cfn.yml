@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'A CFN template to deploy a Lambda function from code in S3 bucket.
+  ** Version: 0.2.0 (04-22-2019)
+  ** Author: gagarin.dev'
+Parameters:
+  pLambdaRuntime:  # https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html
+    Description: Lambda runtime (e.g. 'python3.6')
+    Type: String
+    Default: python3.6
+    AllowedValues:
+    - 'nodejs8.10'
+    - 'python3.7'
+    - 'python3.6'
+    - 'python2.7'
+    - 'ruby2.5'
+    - 'java8'
+    - 'go1.x'
+    - 'dotnetcore2.1'
+  pConfigBucketName:
+    Description: Name of the S3 bucket where code for this Lambda function is located.
+    Type: String
+    Default: mybucketname
+  pLambdaCodeName:
+    Description: Name of the file with the code for the Lambda function but without .zip extension
+    Type: String
+    Default: lambda-code
+  pLambdaHandlerName:
+    Description: Name of the Lambda handler in your code
+    Type: String
+    Default: lambda_handler
+    
+Resources:
+  rLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Here is a description of the Lambda function.
+      Handler: !Sub "${pLambdaCodeName}.${pLambdaHandlerName}"
+      Role: !GetAtt rLambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref pConfigBucketName
+        S3Key: !Sub "${pLambdaCodeName}.zip"
+      Timeout: 300
+      MemorySize: 128
+      Runtime: !Ref pLambdaRuntime
+
+  rLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: AmiFactoryLambdaExecPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow    # Standard permissions for Lambda to be able to log to CloudWatch Logs
+            Action:
+            - logs:CreateLogStream
+            - logs:CreateLogGroup
+            - logs:PutLogEvents
+            Resource: "*"
+          - Effect: Allow    # Additional permissions, depending on a specific Lambda function. The below listed actions is just an example.
+            Action:
+            - ec2:Describe*
+            - ec2:CreateSnapshot
+            - ec2:CreateImage
+            Resource: "*"
+
+Outputs:
+  oLambdaFunctionArn:
+    Description: ARN of the 'rLambdaFunction' Lambda function
+    Value: !GetAtt rLambdaFunction.Arn
+
+# Copyright (c) 2019 gagarin.dev
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.

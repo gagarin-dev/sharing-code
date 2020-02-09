@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Basic Route53 hosted zone template.
+  ** Version: 02-09-2020'
+
+Parameters:    # =============[ PARAMETERS ]==========================
+
+  pHostedZoneName:
+    Description: Name of Route53 hosted zone
+    Type: String
+
+  pHostedZoneComments:
+    Description: Optional comment about hosted zone
+    Default: ""
+    Type: String
+
+  pVpcId:
+    Description: Private hosted zones only - ID of a VPC
+    Default: ""
+    Type: AWS::EC2::VPC::Id
+
+  pVpcRegion:
+    Description: Private hosted zones only - region that VPC was created in
+    Default: ""
+    Type: String
+
+  pTagHostedZoneOwner:
+    Description: Owner of hosted zone
+    Type: String
+
+Conditions:    # ==============[ CONDITIONS ]==========================
+
+  cProvidedVpcDetails:
+    !And 
+      - !Not [!Equals [!Ref pVpcId, ""]]
+      - !Not [!Equals [!Ref pVpcRegion, ""]]
+
+
+Resources:    # ==============[ RESOURCES ]==========================
+
+  rRoute53HostedZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      Name: !Ref pHostedZoneName
+      HostedZoneConfig:
+        Comment: !Ref pHostedZoneComments
+      VPCs:
+        - 
+          VPCId:
+            !If 
+            - cProvidedVpcDetails
+            - !Ref pVpcId
+            - !Ref AWS::NoValue
+          VPCRegion:
+            !If 
+            - cProvidedVpcDetails
+            - !Ref pVpcRegion
+            - !Ref AWS::NoValue
+      HostedZoneTags:
+        - 
+          Key: Owner
+          Value: !Ref pTagHostedZoneOwner
+

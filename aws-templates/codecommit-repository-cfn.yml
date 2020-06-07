@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'Creates a CodeCommit repository.
   The repository needs to be initialized after creation, so at least one branch is created.
-  ** Version: 04-12-2019
+  ** Version: 06-05-2020
   ** Author: gagarin.dev'
 
 Parameters:
@@ -12,6 +12,13 @@ Parameters:
   pCodeCommitRepositoryDescription:
     Type: String
     Description: 'Provide a description for the repository.'
+  pTagEnvironmentType:
+    Type: String
+    Default: dev
+    AllowedValues: 
+      - prod
+      - dev
+    Description: 'Development or Production environment.'
 
 Resources:
 
@@ -20,6 +27,8 @@ Resources:
     Properties: 
       RepositoryDescription: !Ref pCodeCommitRepositoryDescription
       RepositoryName: !Ref pCodeCommitRepositoryName
+      Tags:
+        - { Key: Environment, Value: !Ref pTagEnvironmentType }
 
 Outputs:
   oCodeCommitRepoId:

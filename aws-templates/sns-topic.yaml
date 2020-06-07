@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Creates an SNS topic.
+  ** Version: 06-05-2020
+  ** Author: gagarin.dev'
+
+Parameters:
+
+  pSnsTopicName:
+    Type: String
+    Description: 'The display name of the SNS topic.'
+  pTagEnvironmentType:
+    Type: String
+    Default: dev
+    AllowedValues: 
+      - prod
+      - dev
+    Description: 'Development or Production environment.'
+
+Resources:
+
+  rSnsTopic:  # Amazon SNS Topic
+    Type: AWS::SNS::Topic
+    Properties: 
+      TopicName: !Ref pSnsTopicName
+      Tags:
+        - { Key: Environment, Value: !Ref pTagEnvironmentType }
+
+Outputs:
+  oSnsTopicArn:
+    Value: !Ref rSnsTopic
+    Description: The SNS topic ARN, such as arn:aws:sns:us-east-1:123456789012:mystack-mytopic-NZJ5JSMVGFIE
+  oSnsTopicName:
+    Value: !GetAtt rSnsTopic.TopicName
+    Description: 'The name of an Amazon SNS topic'
